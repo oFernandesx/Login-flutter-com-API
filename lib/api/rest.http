@@ -1,0 +1,82 @@
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjU5YjNmODE3LTkxZTUtNDExMi1iN2Y1LTdlZDY4MGZhMTUzOSIsInJvbGUiOiJBRE1JTiIsImVtYWlsIjoidGVzdGUxQGVtYWlsLmNvbSIsImlhdCI6MTc1ODcxOTgwMCwiZXhwIjoxNzU4ODA2MjAwfQ.WR0TIfFpsxKPySMLa2qJ5gty9sYuAcCCXKGLSHtk98M
+@courseId = bfafa275-30af-4792-9be5-d55dd1d6526d
+
+### Login
+POST https://api.devthigas.shop/login
+Content-Type: application/json
+
+{
+  "email": "teste1@email.com",
+  "password": "123456"
+}
+
+### Criar usuário (apenas ADMIN)
+POST https://api.devthigas.shop/users
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Novo Usuário",
+  "email": "novo@email.com",
+  "password": "123456",
+  "role": "USER"
+}
+
+### Listar usuários (apenas ADMIN)
+GET https://api.devthigas.shop/users
+Authorization: Bearer {{token}}
+
+### Buscar usuário por ID (apenas ADMIN)
+GET https://api.devthigas.shop/users/{{userId}}
+Authorization: Bearer {{token}}
+
+### Atualizar usuário (apenas ADMIN)
+PUT https://api.devthigas.shop/users/{{userId}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Nome Atualizado"
+}
+
+### Deletar usuário (apenas ADMIN)
+DELETE https://api.devthigas.shop/users/{{userId}}
+Authorization: Bearer {{token}}
+
+### Obter dados do usuário autenticado
+GET https://api.devthigas.shop/me
+Authorization: Bearer {{token}}
+
+### Criar curso (qualquer usuário autenticado)
+POST https://api.devthigas.shop/courses
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Curso de Node.js",
+  "desc": "Aprenda Node.js do zero",
+  "price": 99.9
+}
+
+### Listar cursos
+GET https://api.devthigas.shop/courses
+
+### Atualizar curso (dono ou ADMIN)
+PUT https://api.devthigas.shop/courses/{{courseId}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Curso Atualizado",
+  "desc": "Nova descrição",
+  "price": 120
+}
+
+### Deletar curso (dono ou ADMIN)
+DELETE https://api.devthigas.shop/courses/{{courseId}}
+Authorization: Bearer {{token}}
+
+### Rota protegida para ADMIN
+GET https://api.devthigas.shop/admin
+Authorization: Bearer {{token}}
+
