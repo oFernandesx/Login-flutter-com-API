@@ -14,16 +14,20 @@ class _AdminPageState extends State<AdminPage> {
   List<dynamic> courses = [];
   bool isLoadingUsers = true;
   bool isLoadingCourses = true;
+  
+  final bool _isUserAdmin = false; 
 
   @override
   void initState() {
     super.initState();
-    loadUsers();
     loadCourses();
+    if (_isUserAdmin) {
+      loadUsers();
+    } else {
+      isLoadingUsers = false; 
+    }
   }
   
-
-
   void _showSnackbar(String message, {Color color = Colors.red}) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -36,7 +40,6 @@ class _AdminPageState extends State<AdminPage> {
     }
   }
 
- 
   Widget _buildDashboardCard({
     required Widget child,
     Color color = Colors.white,
@@ -67,9 +70,9 @@ class _AdminPageState extends State<AdminPage> {
     );
   }
 
-
-
   Future<void> loadUsers() async {
+    if (!_isUserAdmin) return;
+
     try {
       final data = await UserService.getUsers();
       if (mounted) {
@@ -103,9 +106,8 @@ class _AdminPageState extends State<AdminPage> {
     }
   }
 
-
-
   void editUser(String id, String currentName) {
+    if (!_isUserAdmin) return;
     final controller = TextEditingController(text: currentName);
     showDialog(
       context: context,
@@ -140,6 +142,7 @@ class _AdminPageState extends State<AdminPage> {
   }
 
   void deleteUser(String id) async {
+    if (!_isUserAdmin) return;
     final success = await UserService.deleteUser(id);
     if (success) {
       _showSnackbar("Usuário deletado com sucesso!", color: Colors.green);
@@ -150,6 +153,7 @@ class _AdminPageState extends State<AdminPage> {
   }
 
   void editCourse(String id, String name, String desc, double price) {
+    if (!_isUserAdmin) return;
     final nameController = TextEditingController(text: name);
     final descController = TextEditingController(text: desc);
     final priceController = TextEditingController(text: price.toString());
@@ -180,7 +184,6 @@ class _AdminPageState extends State<AdminPage> {
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(context);
-
               final newPrice = double.tryParse(priceController.text.replaceAll(',', '.')) ?? 0.0;
               final success = await CourseService.updateCourse(
                   id, nameController.text, descController.text, newPrice);
@@ -200,6 +203,7 @@ class _AdminPageState extends State<AdminPage> {
   }
 
   void deleteCourse(String id) async {
+    if (!_isUserAdmin) return;
     final success = await CourseService.deleteCourse(id);
     if (success) {
       _showSnackbar("Curso deletado com sucesso!", color: Colors.green);
@@ -209,16 +213,14 @@ class _AdminPageState extends State<AdminPage> {
     }
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: const Text(
-          "Painel Administrativo",
-          style: TextStyle(
+        title: Text(
+          _isUserAdmin ? "Painel Administrativo" : "Catálogo de Cursos",
+          style: const TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.w600,
           ),
@@ -233,75 +235,75 @@ class _AdminPageState extends State<AdminPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
-            const Padding(
-              padding: EdgeInsets.only(bottom: 8.0, top: 8.0),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8.0, top: 8.0),
               child: Text(
-                "Gestão de Conteúdo",
-                style: TextStyle(
+                _isUserAdmin ? "Gestão de Conteúdo" : "Bem-vindo ao Catálogo",
+                style: const TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                   color: Colors.black87,
                 ),
               ),
             ),
-            const Text(
-              "Gerencie usuários e cursos cadastrados no sistema.",
-              style: TextStyle(fontSize: 16, color: Colors.blueGrey),
+            Text(
+              _isUserAdmin
+                  ? "Gerencie usuários e cursos cadastrados no sistema."
+                  : "Confira todos os cursos disponíveis e comece a aprender.",
+              style: const TextStyle(fontSize: 16, color: Colors.blueGrey),
             ),
             const SizedBox(height: 30),
 
+            if (_isUserAdmin) ...[
+              const Text(
+                "Usuários Cadastrados",
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87),
+              ),
+              const SizedBox(height: 15),
 
-            const Text(
-              "Usuários Cadastrados",
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87),
-            ),
-            const SizedBox(height: 15),
-
-            isLoadingUsers
-                ? const Center(child: Padding(
-                    padding: EdgeInsets.all(20.0),
-                    child: CircularProgressIndicator(color: Colors.blueAccent),
-                  ))
-                : users.isEmpty
-                    ? const Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: Text("Nenhum usuário encontrado.", style: TextStyle(color: Colors.grey)),
-                      )
-                    : ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: users.length,
-                        itemBuilder: (context, index) {
-                          final user = users[index];
-                          return _buildDashboardCard(
-                            color: Colors.blue.shade50, 
-                            child: ListTile(
-                              leading: CircleAvatar(
-                                backgroundColor: Colors.blue.withOpacity(0.2),
-                                child: Icon(Icons.person, color: Colors.blue.shade700, size: 20),
+              isLoadingUsers
+                  ? const Center(child: Padding(
+                      padding: EdgeInsets.all(20.0),
+                      child: CircularProgressIndicator(color: Colors.blueAccent),
+                    ))
+                  : users.isEmpty
+                      ? const Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: Text("Nenhum usuário encontrado.", style: TextStyle(color: Colors.grey)),
+                        )
+                      : ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: users.length,
+                          itemBuilder: (context, index) {
+                            final user = users[index];
+                            return _buildDashboardCard(
+                              color: Colors.blue.shade50,
+                              child: ListTile(
+                                leading: CircleAvatar(
+                                  backgroundColor: Colors.blue.withOpacity(0.2),
+                                  child: Icon(Icons.person, color: Colors.blue.shade700, size: 20),
+                                ),
+                                title: Text(user["name"], style: const TextStyle(fontWeight: FontWeight.w500)),
+                                subtitle: Text(user["email"], style: const TextStyle(color: Colors.grey)),
+                                trailing: Row( 
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                        icon: const Icon(Icons.edit_outlined, color: Colors.orange),
+                                        onPressed: () => editUser(user["id"], user["name"])),
+                                    IconButton(
+                                        icon: const Icon(Icons.delete_outline, color: Colors.red),
+                                        onPressed: () => deleteUser(user["id"])),
+                                  ],
+                                ),
                               ),
-                              title: Text(user["name"], style: const TextStyle(fontWeight: FontWeight.w500)),
-                              subtitle: Text(user["email"], style: const TextStyle(color: Colors.grey)),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                      icon: const Icon(Icons.edit_outlined, color: Colors.orange),
-                                      onPressed: () => editUser(user["id"], user["name"])),
-                                  IconButton(
-                                      icon: const Icon(Icons.delete_outline, color: Colors.red),
-                                      onPressed: () => deleteUser(user["id"])),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+                            );
+                          },
+                        ),
+              const SizedBox(height: 30),
+            ],
 
-            const SizedBox(height: 30),
-
-            // ===== LISTA DE CURSOS (Course List) =====
             const Text(
               "Cursos Publicados", 
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87),
@@ -326,7 +328,7 @@ class _AdminPageState extends State<AdminPage> {
                           final course = courses[index];
                           final price = (course["price"] ?? 0.0).toDouble();
                           return _buildDashboardCard(
-                            color: Colors.green.shade50, 
+                            color: Colors.green.shade50,
                             child: ListTile(
                               leading: CircleAvatar(
                                 backgroundColor: Colors.green.withOpacity(0.2),
@@ -338,18 +340,20 @@ class _AdminPageState extends State<AdminPage> {
                                 style: const TextStyle(color: Colors.grey),
                                 overflow: TextOverflow.ellipsis,
                               ),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                      icon: const Icon(Icons.edit_outlined, color: Colors.orange),
-                                      onPressed: () => editCourse(
-                                          course["id"], course["name"], course["desc"] ?? "", price)),
-                                  IconButton(
-                                      icon: const Icon(Icons.delete_outline, color: Colors.red),
-                                      onPressed: () => deleteCourse(course["id"])),
-                                ],
-                              ),
+                              trailing: _isUserAdmin 
+                                ? Row( 
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                          icon: const Icon(Icons.edit_outlined, color: Colors.orange),
+                                          onPressed: () => editCourse(
+                                              course["id"], course["name"], course["desc"] ?? "", price)),
+                                      IconButton(
+                                          icon: const Icon(Icons.delete_outline, color: Colors.red),
+                                          onPressed: () => deleteCourse(course["id"])),
+                                    ],
+                                  )
+                                : const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.blueGrey), 
                             ),
                           );
                         },

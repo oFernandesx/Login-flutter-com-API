@@ -3,9 +3,6 @@ import '../api/course_service.dart';
 import '../api/user_service.dart';
 import '../api/auth_service.dart';
 
-// Assuming you have simple data models (classes) for better type safety
-// For demonstration, we'll stick to Map<String, dynamic> but keep the code clean.
-
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -19,16 +16,22 @@ class _HomePageState extends State<HomePage> {
   bool isLoadingUsers = true;
   bool isLoadingCourses = true;
 
+  final bool _isUserAdmin = true;
+
   @override
   void initState() {
     super.initState();
-    loadUsers();
     loadCourses();
+
+    if (_isUserAdmin) {
+      loadUsers();
+    } else {
+      isLoadingUsers = false;
+    }
   }
 
-  // --- Utility Functions with `mounted` Check and UI Feedback ---
-
   Future<void> loadUsers() async {
+    if (!_isUserAdmin) return; 
     try {
       final data = await UserService.getUsers();
       if (mounted) {
@@ -73,7 +76,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // Utility to show success/error message
+
   void showFeedback(String message, {bool isError = false}) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -85,9 +88,10 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // --- CRUD Handlers ---
+
 
   void editUser(String id, String currentName) {
+    if (!_isUserAdmin) return;
     final controller = TextEditingController(text: currentName);
     showDialog(
       context: context,
@@ -121,6 +125,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void deleteUser(String id) async {
+    if (!_isUserAdmin) return;
     final success = await UserService.deleteUser(id);
     if (success) {
       showFeedback("Usuário deletado com sucesso!");
@@ -131,16 +136,16 @@ class _HomePageState extends State<HomePage> {
   }
 
   void editCourse(String id, String name, String desc, double price) {
+    if (!_isUserAdmin) return;
     final nameController = TextEditingController(text: name);
     final descController = TextEditingController(text: desc);
-    // Use an input formatter or more robust validation in a real app
     final priceController = TextEditingController(text: price.toString());
 
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
         title: const Text("Editar Curso", style: TextStyle(fontWeight: FontWeight.w600)),
-        content: SingleChildScrollView( // Add SingleChildScrollView for better compatibility
+        content: SingleChildScrollView( 
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -180,6 +185,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void deleteCourse(String id) async {
+    if (!_isUserAdmin) return;
     final success = await CourseService.deleteCourse(id);
     if (success) {
       showFeedback("Curso deletado com sucesso!");
@@ -189,7 +195,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // --- UI Widgets for Minimalist Design ---
+
 
   Widget _buildActionButton(
       {required String label, required IconData icon, required Color color, required VoidCallback onPressed}) {
@@ -198,7 +204,7 @@ class _HomePageState extends State<HomePage> {
         height: 50,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          color: color.withOpacity(0.1), // Subtle background color
+          color: color.withOpacity(0.1), 
         ),
         child: TextButton.icon(
           icon: Icon(icon, color: color),
@@ -208,7 +214,7 @@ class _HomePageState extends State<HomePage> {
           ),
           onPressed: onPressed,
           style: TextButton.styleFrom(
-            padding: EdgeInsets.zero, // Remove padding to let the container handle it
+            padding: EdgeInsets.zero, 
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         ),
@@ -230,7 +236,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // A custom card for a cleaner look
   Widget _buildDashboardCard({
     required Widget child,
     Color color = Colors.white,
@@ -245,7 +250,7 @@ class _HomePageState extends State<HomePage> {
             color: Colors.grey.withOpacity(0.08),
             spreadRadius: 1,
             blurRadius: 10,
-            offset: const Offset(0, 3), // subtle shadow lift
+            offset: const Offset(0, 3), 
           ),
         ],
       ),
@@ -253,23 +258,23 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // --- Main Build Method ---
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50], // Light gray background for contrast
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text(
-          "Dashboard",
-          style: TextStyle(
+        title: Text(
+          _isUserAdmin ? "Painel Administrativo" : "Catálogo de Cursos",
+          style: const TextStyle(
             color: Colors.black,
-            fontWeight: FontWeight.bold, // Modern bold title
+            fontWeight: FontWeight.bold, 
           ),
         ),
-        centerTitle: false, // Left alignment for modern apps
+        centerTitle: false,
         backgroundColor: Colors.white,
-        elevation: 0.5, // Subtle separation from the body
+        elevation: 0.5, 
         actions: [
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.grey),
@@ -279,76 +284,79 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20), // Increased padding for more white space
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ===== BOTÕES DE AÇÃO (Action Buttons) =====
-            Row(
-              children: [
-                _buildActionButton(
-                  icon: Icons.person_add_alt_1,
-                  label: "Novo Usuário",
-                  color: Colors.blue.shade600,
-                  onPressed: () =>
-                      Navigator.pushNamed(context, "/createUser").then((_) => loadUsers()),
-                ),
-                const SizedBox(width: 15),
-                _buildActionButton(
-                  icon: Icons.auto_stories,
-                  label: "Novo Curso",
-                  color: Colors.green.shade600,
-                  onPressed: () =>
-                      Navigator.pushNamed(context, "/createCourse").then((_) => loadCourses()),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
 
-            // ---
+
+            if (_isUserAdmin) ...[
+              Row(
+                children: [
+                  _buildActionButton(
+                    icon: Icons.person_add_alt_1,
+                    label: "Novo Usuário",
+                    color: Colors.blue.shade600,
+                    onPressed: () =>
+                        Navigator.pushNamed(context, "/createUser").then((_) => loadUsers()),
+                  ),
+                  const SizedBox(width: 15),
+                  _buildActionButton(
+                    icon: Icons.auto_stories,
+                    label: "Novo Curso",
+                    color: Colors.green.shade600,
+                    onPressed: () =>
+                        Navigator.pushNamed(context, "/createCourse").then((_) => loadCourses()),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+            ],
+
+
+            if (_isUserAdmin) ...[
+              _buildSectionHeader("Usuários"),
+              isLoadingUsers
+                  ? const Center(child: CircularProgressIndicator())
+                  : users.isEmpty
+                      ? const Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: Text("Nenhum usuário encontrado.", style: TextStyle(color: Colors.grey)),
+                        )
+                      : ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: users.length,
+                          itemBuilder: (context, index) {
+                            final user = users[index];
+                            return _buildDashboardCard(
+                              color: Colors.blue.shade50, 
+                              child: ListTile(
+                                leading: CircleAvatar(
+                                  backgroundColor: Colors.blue.withOpacity(0.1),
+                                  child: Text(user["name"][0].toUpperCase(), style: TextStyle(color: Colors.blue.shade600, fontWeight: FontWeight.bold)),
+                                ),
+                                title: Text(user["name"], style: const TextStyle(fontWeight: FontWeight.w500)),
+                                subtitle: Text(user["email"], style: const TextStyle(color: Colors.grey)),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                        icon: const Icon(Icons.edit_outlined, color: Colors.orange),
+                                        onPressed: () => editUser(user["id"], user["name"])),
+                                    IconButton(
+                                        icon: const Icon(Icons.delete_outline, color: Colors.red),
+                                        onPressed: () => deleteUser(user["id"])),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+              const SizedBox(height: 20),
+            ],
             
-            // ===== LISTA DE USUÁRIOS (User List) =====
-            _buildSectionHeader("Usuários"),
-            isLoadingUsers
-                ? const Center(child: CircularProgressIndicator())
-                : users.isEmpty
-                    ? const Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: Text("Nenhum usuário encontrado.", style: TextStyle(color: Colors.grey)),
-                      )
-                    : ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: users.length,
-                        itemBuilder: (context, index) {
-                          final user = users[index];
-                          return _buildDashboardCard(
-                            child: ListTile(
-                              leading: CircleAvatar(
-                                backgroundColor: Colors.blue.withOpacity(0.1),
-                                child: Text(user["name"][0].toUpperCase(), style: TextStyle(color: Colors.blue.shade600, fontWeight: FontWeight.bold)),
-                              ),
-                              title: Text(user["name"], style: const TextStyle(fontWeight: FontWeight.w500)),
-                              subtitle: Text(user["email"], style: const TextStyle(color: Colors.grey)),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                      icon: const Icon(Icons.edit_outlined, color: Colors.orange),
-                                      onPressed: () => editUser(user["id"], user["name"])),
-                                  IconButton(
-                                      icon: const Icon(Icons.delete_outline, color: Colors.red),
-                                      onPressed: () => deleteUser(user["id"])),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
 
-            // ---
-
-            // ===== LISTA DE CURSOS (Course List) =====
             _buildSectionHeader("Cursos"),
             isLoadingCourses
                 ? const Center(child: CircularProgressIndicator())
@@ -365,6 +373,7 @@ class _HomePageState extends State<HomePage> {
                           final course = courses[index];
                           final price = (course["price"] ?? 0.0).toDouble();
                           return _buildDashboardCard(
+                            color: Colors.green.shade50, 
                             child: ListTile(
                               leading: CircleAvatar(
                                 backgroundColor: Colors.green.withOpacity(0.1),
@@ -374,20 +383,22 @@ class _HomePageState extends State<HomePage> {
                               subtitle: Text(
                                 "${course["desc"] ?? "Sem descrição"} - R\$ ${price.toStringAsFixed(2)}",
                                 style: const TextStyle(color: Colors.grey),
-                                overflow: TextOverflow.ellipsis, // Clean up long descriptions
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                      icon: const Icon(Icons.edit_outlined, color: Colors.orange),
-                                      onPressed: () => editCourse(
-                                          course["id"], course["name"], course["desc"] ?? "", price)),
-                                  IconButton(
-                                      icon: const Icon(Icons.delete_outline, color: Colors.red),
-                                      onPressed: () => deleteCourse(course["id"])),
-                                ],
-                              ),
+                              trailing: _isUserAdmin 
+                                ? Row( 
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                          icon: const Icon(Icons.edit_outlined, color: Colors.orange),
+                                          onPressed: () => editCourse(
+                                              course["id"], course["name"], course["desc"] ?? "", price)),
+                                      IconButton(
+                                          icon: const Icon(Icons.delete_outline, color: Colors.red),
+                                          onPressed: () => deleteCourse(course["id"])),
+                                    ],
+                                  )
+                                : const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.blueGrey), 
                             ),
                           );
                         },

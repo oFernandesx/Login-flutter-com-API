@@ -7,7 +7,8 @@ Content-Type: application/json
 
 {
   "email": "teste1@email.com",
-  "password": "123456"
+  "password": "123456",
+  "role": "ADMIN"
 }
 
 ### Criar usuário (apenas ADMIN)
@@ -19,7 +20,7 @@ Authorization: Bearer {{token}}
   "name": "Novo Usuário",
   "email": "novo@email.com",
   "password": "123456",
-  "role": "USER"
+  "role": "ADMIN"
 }
 
 ### Listar usuários (apenas ADMIN)
@@ -79,4 +80,6 @@ Authorization: Bearer {{token}}
 ### Rota protegida para ADMIN
 GET https://api.devthigas.shop/admin
 Authorization: Bearer {{token}}
+
+
 
