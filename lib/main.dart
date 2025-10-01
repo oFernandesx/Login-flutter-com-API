@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_1/api/user_service.dart';
 import 'package:flutter_application_1/ui/create_couse.dart';
 import 'package:flutter_application_1/ui/homepage.dart';
-import '../ui/loginpage.dart';
+import 'package:flutter_application_1/ui/loginpage.dart';
 import '../ui/homepage.dart';
 
 void main() {
