@@ -1,64 +1,37 @@
-import 'package:flutter/material.dart';
-import '../api/auth_service.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'auth_service.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class UserService {
+  static const String baseUrl = "https://api.devthigas.shop";
 
-  @override
-  State<LoginPage> createState() => _LoginPageState();
-}
+  // ✅ Criar usuário (apenas ADMIN)
+  static Future<bool> createUser(String name, String email, String password, String role) async {
+    try {
+      final token = await AuthService.getToken(); // Token salvo no login
+      final url = Uri.parse("$baseUrl/users");
 
-class _LoginPageState extends State<LoginPage> {
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
-  bool isLoading = false;
-
-  void _login() async {
-    setState(() => isLoading = true);
-
-    final success = await AuthService.login(
-      emailController.text,
-      passwordController.text,
-    );
-
-    setState(() => isLoading = false);
-
-    if (success && mounted) {
-      Navigator.pushReplacementNamed(context, "/home");
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Login inválido")),
+      final response = await http.post(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+        body: jsonEncode({
+          "name": name,
+          "email": email,
+          "password": password,
+          "role": role, // Ex: "USER" ou "ADMIN"
+        }),
       );
-    }
-  }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Login")),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            TextField(
-              controller: emailController,
-              decoration: const InputDecoration(labelText: "Email"),
-            ),
-            TextField(
-              controller: passwordController,
-              decoration: const InputDecoration(labelText: "Senha"),
-              obscureText: true,
-            ),
-            const SizedBox(height: 20),
-            isLoading
-                ? const CircularProgressIndicator()
-                : ElevatedButton(
-                    onPressed: _login,
-                    child: const Text("Entrar"),
-                  ),
-          ],
-        ),
-      ),
-    );
+      print("STATUS: ${response.statusCode}");
+      print("BODY: ${response.body}");
+
+      return response.statusCode == 201;
+    } catch (e) {
+      print("Erro ao criar usuário: $e");
+      return false;
+    }
   }
 }
