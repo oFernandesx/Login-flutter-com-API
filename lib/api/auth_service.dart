@@ -14,19 +14,18 @@ class AuthService {
         body: jsonEncode({"email": email, "password": password}),
       );
 
+      print("STATUS: ${response.statusCode}");
+      print("BODY: ${response.body}");
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+
+
         final token = data["accessToken"] ?? data["token"];
 
         if (token != null) {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString("token", token);
-
-          // salva info do usuário
-          await prefs.setString("role", data["role"] ?? "USER");
-          await prefs.setString("email", data["email"] ?? "");
-          await prefs.setString("id", data["id"] ?? "");
-
           return true;
         }
       }
@@ -39,16 +38,11 @@ class AuthService {
 
   static Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
+    await prefs.remove("token");
   }
 
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString("token");
-  }
-
-  static Future<String?> getRole() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString("role");
   }
 }
