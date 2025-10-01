@@ -20,7 +20,7 @@ class AuthService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
 
-        // pega tanto accessToken quanto token
+
         final token = data["accessToken"] ?? data["token"];
 
         if (token != null) {
