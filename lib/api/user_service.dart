@@ -5,33 +5,66 @@ import 'auth_service.dart';
 class UserService {
   static const String baseUrl = "https://api.devthigas.shop";
 
-  // ✅ Criar usuário (apenas ADMIN)
   static Future<bool> createUser(String name, String email, String password, String role) async {
     try {
-      final token = await AuthService.getToken(); // Token salvo no login
+      final token = await AuthService.getToken();
       final url = Uri.parse("$baseUrl/users");
+      final response = await http.post(url,
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer $token",
+          },
+          body: jsonEncode({
+            "name": name,
+            "email": email,
+            "password": password,
+            "role": role,
+          }));
+      return response.statusCode == 201;
+    } catch (e) {
+      print(e);
+      return false;
+    }
+  }
 
-      final response = await http.post(
-        url,
+  static Future<List<dynamic>> getUsers() async {
+    final token = await AuthService.getToken();
+    final url = Uri.parse("$baseUrl/users");
+    final response = await http.get(url, headers: {
+      "Authorization": "Bearer $token",
+    });
+    if (response.statusCode == 200) return jsonDecode(response.body);
+    throw Exception("Erro ao listar usuários");
+  }
+
+  static Future<Map<String, dynamic>> getUserById(String id) async {
+    final token = await AuthService.getToken();
+    final url = Uri.parse("$baseUrl/users/$id");
+    final response = await http.get(url, headers: {
+      "Authorization": "Bearer $token",
+    });
+    if (response.statusCode == 200) return jsonDecode(response.body);
+    throw Exception("Usuário não encontrado");
+  }
+
+  static Future<bool> updateUser(String id, String name) async {
+    final token = await AuthService.getToken();
+    final url = Uri.parse("$baseUrl/users/$id");
+    final response = await http.put(url,
         headers: {
           "Content-Type": "application/json",
           "Authorization": "Bearer $token",
         },
-        body: jsonEncode({
-          "name": name,
-          "email": email,
-          "password": password,
-          "role": role, // Ex: "USER" ou "ADMIN"
-        }),
-      );
+        body: jsonEncode({"name": name}));
+    return response.statusCode == 200;
+  }
 
-      print("STATUS: ${response.statusCode}");
-      print("BODY: ${response.body}");
-
-      return response.statusCode == 201;
-    } catch (e) {
-      print("Erro ao criar usuário: $e");
-      return false;
-    }
+  static Future<bool> deleteUser(String id) async {
+    final token = await AuthService.getToken();
+    final url = Uri.parse("$baseUrl/users/$id");
+    final response = await http.delete(url, headers: {
+      "Authorization": "Bearer $token",
+    });
+    return response.statusCode == 200;
   }
 }

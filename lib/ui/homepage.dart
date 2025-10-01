@@ -45,7 +45,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Cursos"),
+        title: const Text("Home"),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -53,25 +53,54 @@ class _HomePageState extends State<HomePage> {
           )
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.pushNamed(context, "/createCourse");
-        },
-        child: const Icon(Icons.add),
-      ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: courses.length,
-              itemBuilder: (context, index) {
-                final course = courses[index];
-                return ListTile(
-                  title: Text(course["name"]),
-                  subtitle: Text(course["desc"] ?? ""),
-                  trailing: Text("R\$ ${course["price"]}"),
-                );
-              },
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, "/createCourse");
+                    },
+                    child: const Text("Criar Curso"),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, "/createUser");
+                    },
+                    child: const Text("Criar Usuário"),
+                  ),
+                ),
+              ],
             ),
+          ),
+          const SizedBox(height: 10),
+          Expanded(
+            child: isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : ListView.builder(
+                    itemCount: courses.length,
+                    itemBuilder: (context, index) {
+                      final course = courses[index];
+                      return Card(
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        child: ListTile(
+                          title: Text(course["name"]),
+                          subtitle: Text(course["desc"] ?? ""),
+                          trailing: Text("R\$ ${course["price"]}"),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
     );
   }
 }
